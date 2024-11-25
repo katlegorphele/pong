@@ -1,46 +1,49 @@
-class Ball {
-    x: number;
-    y: number;
-    radius: number;
-    velocityX: number;
-    velocityY: number;
+import { GameObject } from "./gameObject";
 
-    constructor(x: number, y: number, radius: number, velocityX:number, velocityY: number) {
-        this.x = x;
-        this.y = y;
-        this.radius = radius;
-        this.velocityX = velocityX;
-        this.velocityY = velocityY;
+export class Ball extends GameObject {
+    private velocityX: number = 0;
+    private velocityY: number = 0;
+    private speed: number;
+    private maxSpeed: number;
+  
+    constructor(x: number, y: number, size: number) {
+      super(x, y, size, size);
+      this.speed = 5;
+      this.maxSpeed = 15;
+      this.reset();
     }
-
-    move() {
-        this.x += this.velocityX;
-        this.y += this.velocityY;
+  
+    reset(): void {
+      this.x = window.innerWidth / 2;
+      this.y = window.innerHeight / 2;
+      this.speed = 5;
+      const angle = (Math.random() * Math.PI / 4) - Math.PI / 8;
+      this.velocityX = this.speed * (Math.random() < 0.5 ? 1 : -1);
+      this.velocityY = this.speed * Math.sin(angle);
     }
-
-    draw(ctx: CanvasRenderingContext2D) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y,this.radius, 0, Math.PI * 2)
-        ctx.fillStyle = 'white';
-        ctx.fill();
-        ctx.closePath();
+  
+    update(): void {
+      this.x += this.velocityX;
+      this.y += this.velocityY;
+  
+      // Bounce off top and bottom
+      if (this.y <= 0 || this.y + this.height >= window.innerHeight) {
+        this.velocityY *= -1;
+      }
     }
-
-    checkCollision(paddle : {y: number; height: number; width: number; x: number;}) {
-        if (
-            this.x - this.radius < paddle.x + paddle.width &&
-            this.x + this.radius > paddle.x &&
-            this.y + this.radius > paddle.y &&
-            this.y - this.radius < paddle.y + paddle.height
-        ) {
-            this.velocityX = -this.velocityX //Bounce ball in opposite direction
-        }
+  
+    reverseX(): void {
+      this.velocityX *= -1;
+      // Increase speed with each paddle hit
+      this.speed = Math.min(this.speed + 0.5, this.maxSpeed);
+      this.velocityX = this.velocityX > 0 ? this.speed : -this.speed;
     }
-
-    checkWallCollision(canvasHeight: number) {
-        if (this.y - this.radius <=0 || this.y + this.radius >= canvasHeight)
-            {this.velocityY = -this.velocityY;}
+  
+    draw(ctx: CanvasRenderingContext2D): void {
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.width / 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'white';
+      ctx.fill();
+      ctx.closePath();
     }
-}
-
-export default Ball;
+  }
